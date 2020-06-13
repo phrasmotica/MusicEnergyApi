@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -13,16 +14,6 @@ namespace MusicEnergyCalculator
 {
     public static class MusicEnergyCalculator
     {
-        /// <summary>
-        /// The app client ID.
-        /// </summary>
-        private const string ClientId = "de8e2df8cbb84989bb42d13700e83168";
-
-        /// <summary>
-        /// The app client secret.
-        /// </summary>
-        private const string ClientSecret = "b6ff30e7e1744da9ac435eda959fbbf4";
-
         [FunctionName("MusicEnergyCalculator")]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req,
@@ -154,7 +145,9 @@ namespace MusicEnergyCalculator
         /// </summary>
         private static async Task<SpotifyWebAPI> GetClient()
         {
-            var auth = new CredentialsAuth(ClientId, ClientSecret);
+            var clientId = Environment.GetEnvironmentVariable("SpotifyClientId");
+            var clientSecret = Environment.GetEnvironmentVariable("SpotifyClientSecret");
+            var auth = new CredentialsAuth(clientId, clientSecret);
             var token = await auth.GetToken();
 
             return new SpotifyWebAPI
