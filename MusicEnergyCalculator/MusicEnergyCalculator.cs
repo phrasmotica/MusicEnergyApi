@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -25,7 +26,10 @@ namespace MusicEnergyCalculator
                 return new BadRequestObjectResult("Please supply a track ID!");
             }
 
-            log.LogInformation($"Getting audio features for track '{trackId}'");
+            log.LogInformation($"Received track ID {trackId}");
+
+            var track = await GetTrack(trackId);
+            log.LogInformation($"Getting audio features for {track.Name} by {track.GetArtistName()}");
 
             var features = await GetAudioFeatures(trackId);
             if (features.HasError())
@@ -39,18 +43,23 @@ namespace MusicEnergyCalculator
                 };
             }
 
-            var response = GetTrackResponse(features);
+            var response = CreateTrackResponse(track, features);
             return new OkObjectResult(response);
         }
 
         /// <summary>
-        /// Returns a track response for the given audio features.
+        /// Returns a response for the given track and its audio features.
         /// </summary>
-        private static TrackResponse GetTrackResponse(AudioFeatures features)
+        private static TrackResponse CreateTrackResponse(FullTrack track, AudioFeatures features)
         {
             return new TrackResponse
             {
-                Id = features.Id,
+                Id = track.Id,
+                Name = track.Name,
+                Artist = track.GetArtistName(),
+                Album = track.Album.Name,
+                Year = track.GetReleaseYear(),
+                ArtworkUrl = track.GetArtworkUrl(),
 
                 Acousticness = features.Acousticness,
                 Danceability = features.Danceability,
@@ -132,6 +141,15 @@ namespace MusicEnergyCalculator
         }
 
         /// <summary>
+        /// Returns data for the track with the given ID.
+        /// </summary>
+        private static async Task<FullTrack> GetTrack(string trackId)
+        {
+            using var client = await GetClient();
+            return await client.GetTrackAsync(trackId);
+        }
+
+        /// <summary>
         /// Returns audio feature data for the track with the given ID.
         /// </summary>
         private static async Task<AudioFeatures> GetAudioFeatures(string trackId)
@@ -163,6 +181,49 @@ namespace MusicEnergyCalculator
     /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Returns the names of the artists for the given track.
+        /// </summary>
+        public static string GetArtistName(this FullTrack track)
+        {
+            return string.Join(" / ", track.Artists.Select(a => a.Name));
+        }
+
+        /// <summary>
+        /// Returns the release year of the given track.
+        /// </summary>
+        public static int GetReleaseYear(this FullTrack track)
+        {
+            if (track.Album.ReleaseDatePrecision.Equals("year", StringComparison.OrdinalIgnoreCase))
+            {
+                return int.Parse(track.Album.ReleaseDate);
+            }
+
+            var dateStr = track.Album.ReleaseDate;
+            if (track.Album.ReleaseDatePrecision.Equals("month", StringComparison.OrdinalIgnoreCase))
+            {
+                dateStr += "-01";
+            }
+
+            return DateTime.Parse(dateStr).Year;
+        }
+
+        /// <summary>
+        /// Returns the URL of artwork for the given track.
+        /// </summary>
+        public static string GetArtworkUrl(this FullTrack track)
+        {
+            return track.Album.Images.Aggregate((i1, i2) => i1.GetSize() > i2.GetSize() ? i1 : i2).Url;
+        }
+
+        /// <summary>
+        /// Returns the size of the image.
+        /// </summary>
+        public static int GetSize(this Image image)
+        {
+            return image.Height * image.Width;
+        }
+
         /// <summary>
         /// Returns the loudness from the given features normalised to a value between 0 and 1.
         /// </summary>
