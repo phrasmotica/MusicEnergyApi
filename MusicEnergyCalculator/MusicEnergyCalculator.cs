@@ -28,9 +28,13 @@ namespace MusicEnergyCalculator
             [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req,
             ILogger log)
         {
-            string trackParam = req.Query["track"];
-            var trackId = string.IsNullOrEmpty(trackParam) ? "31zBvESt331Jm2pU1R9tXt" : trackParam;
-            log.LogInformation($"Getting audio features for track: {trackId}");
+            string trackId = req.Query["track"];
+            if (string.IsNullOrEmpty(trackId))
+            {
+                return new BadRequestObjectResult("Please supply a track ID!");
+            }
+
+            log.LogInformation($"Getting audio features for track '{trackId}'");
 
             var features = await GetAudioFeatures(trackId);
             if (features.HasError())
