@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +33,17 @@ namespace MusicEnergyCalculator
             log.LogInformation($"Getting audio features for track: {trackId}");
 
             var features = await GetAudioFeatures(trackId);
+            if (features.HasError())
+            {
+                log.LogError(features.Error.Message);
+
+                return features.Error.Status switch
+                {
+                    (int) HttpStatusCode.BadRequest => new NotFoundObjectResult($"Track '{trackId}' not found!"),
+                    _ => new BadRequestObjectResult("An unknown error occurred."),
+                };
+            }
+
             var response = GetTrackResponse(features);
             return new OkObjectResult(response);
         }
