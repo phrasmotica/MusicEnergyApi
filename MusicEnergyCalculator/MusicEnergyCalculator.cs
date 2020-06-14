@@ -39,16 +39,16 @@ namespace MusicEnergyCalculator
                 };
             }
 
-            var response = CreateTrackResponse(track, features);
+            var response = CreateEnergyResponse(track, features);
             return new OkObjectResult(response);
         }
 
         /// <summary>
-        /// Returns a response for the given track and its audio features.
+        /// Returns an energy response for the given track and its audio features.
         /// </summary>
-        private static TrackResponse CreateTrackResponse(FullTrack track, AudioFeatures features)
+        private static TrackEnergyResponse CreateEnergyResponse(FullTrack track, AudioFeatures features)
         {
-            return new TrackResponse
+            return new TrackEnergyResponse
             {
                 Id = track.Id,
                 Name = track.Name,

@@ -1,9 +1,9 @@
 ﻿namespace MusicEnergyCalculator
 {
     /// <summary>
-    /// Model for responses.
+    /// Model for responses outlining track energy scores.
     /// </summary>
-    public class TrackResponse
+    public class TrackEnergyResponse
     {
         /// <summary>
         /// Gets or sets the ID of the track.
