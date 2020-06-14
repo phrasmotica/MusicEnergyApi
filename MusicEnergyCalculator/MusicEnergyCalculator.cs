@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -7,8 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using SpotifyAPI.Web;
-using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Models;
 
 namespace MusicEnergyCalculator
@@ -145,7 +141,7 @@ namespace MusicEnergyCalculator
         /// </summary>
         private static async Task<FullTrack> GetTrack(string trackId)
         {
-            using var client = await GetClient();
+            using var client = await Helpers.GetSpotifyClient();
             return await client.GetTrackAsync(trackId);
         }
 
@@ -154,82 +150,8 @@ namespace MusicEnergyCalculator
         /// </summary>
         private static async Task<AudioFeatures> GetAudioFeatures(string trackId)
         {
-            using var client = await GetClient();
+            using var client = await Helpers.GetSpotifyClient();
             return await client.GetAudioFeaturesAsync(trackId);
-        }
-
-        /// <summary>
-        /// Returns an authenticated Spotify API client.
-        /// </summary>
-        private static async Task<SpotifyWebAPI> GetClient()
-        {
-            var clientId = Environment.GetEnvironmentVariable("SpotifyClientId");
-            var clientSecret = Environment.GetEnvironmentVariable("SpotifyClientSecret");
-            var auth = new CredentialsAuth(clientId, clientSecret);
-            var token = await auth.GetToken();
-
-            return new SpotifyWebAPI
-            {
-                AccessToken = token.AccessToken,
-                TokenType = token.TokenType
-            };
-        }
-    }
-
-    /// <summary>
-    /// Extension methods.
-    /// </summary>
-    public static class Extensions
-    {
-        /// <summary>
-        /// Returns the names of the artists for the given track.
-        /// </summary>
-        public static string GetArtistName(this FullTrack track)
-        {
-            return string.Join(" / ", track.Artists.Select(a => a.Name));
-        }
-
-        /// <summary>
-        /// Returns the release year of the given track.
-        /// </summary>
-        public static int GetReleaseYear(this FullTrack track)
-        {
-            if (track.Album.ReleaseDatePrecision.Equals("year", StringComparison.OrdinalIgnoreCase))
-            {
-                return int.Parse(track.Album.ReleaseDate);
-            }
-
-            var dateStr = track.Album.ReleaseDate;
-            if (track.Album.ReleaseDatePrecision.Equals("month", StringComparison.OrdinalIgnoreCase))
-            {
-                dateStr += "-01";
-            }
-
-            return DateTime.Parse(dateStr).Year;
-        }
-
-        /// <summary>
-        /// Returns the URL of artwork for the given track.
-        /// </summary>
-        public static string GetArtworkUrl(this FullTrack track)
-        {
-            return track.Album.Images.Aggregate((i1, i2) => i1.GetSize() > i2.GetSize() ? i1 : i2).Url;
-        }
-
-        /// <summary>
-        /// Returns the size of the image.
-        /// </summary>
-        public static int GetSize(this Image image)
-        {
-            return image.Height * image.Width;
-        }
-
-        /// <summary>
-        /// Returns the loudness from the given features normalised to a value between 0 and 1.
-        /// </summary>
-        public static float NormalisedLoudness(this AudioFeatures features)
-        {
-            return (features.Loudness / 60) + 1;
         }
     }
 }
