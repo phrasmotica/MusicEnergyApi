@@ -7,7 +7,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using SpotifyAPI.Web.Models;
 
-namespace MusicEnergyCalculator
+namespace MusicEnergyApi
 {
     public static class MusicEnergyCalculator
     {

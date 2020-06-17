@@ -1,4 +1,4 @@
-﻿namespace MusicEnergyCalculator
+﻿namespace MusicEnergyApi
 {
     /// <summary>
     /// Model for responses outlining track energy scores.

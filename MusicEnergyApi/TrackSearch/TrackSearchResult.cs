@@ -1,4 +1,4 @@
-﻿namespace MusicEnergyCalculator
+﻿namespace MusicEnergyApi
 {
     /// <summary>
     /// Model for a result returned from a track search.

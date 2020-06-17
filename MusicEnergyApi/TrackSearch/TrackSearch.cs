@@ -9,7 +9,7 @@ using SpotifyAPI.Web.Enums;
 using System.Net;
 using System.Linq;
 
-namespace MusicEnergyCalculator
+namespace MusicEnergyApi
 {
     public static class TrackSearch
     {
