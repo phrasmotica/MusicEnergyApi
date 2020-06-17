@@ -2,7 +2,7 @@
 using System.Linq;
 using SpotifyAPI.Web.Models;
 
-namespace MusicEnergyCalculator
+namespace MusicEnergyApi
 {
     /// <summary>
     /// Extension methods.

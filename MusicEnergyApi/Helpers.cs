@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 
-namespace MusicEnergyCalculator
+namespace MusicEnergyApi
 {
     /// <summary>
     /// Helper functions.
