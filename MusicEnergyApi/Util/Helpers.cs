@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
 using SpotifyAPI.Web;
-using SpotifyAPI.Web.Auth;
 
 namespace MusicEnergyApi
 {
@@ -13,18 +11,18 @@ namespace MusicEnergyApi
         /// <summary>
         /// Returns an authenticated Spotify API client.
         /// </summary>
-        public static async Task<SpotifyWebAPI> GetSpotifyClient()
+        public static SpotifyClient GetSpotifyClient()
         {
             var clientId = Environment.GetEnvironmentVariable("SpotifyClientId");
             var clientSecret = Environment.GetEnvironmentVariable("SpotifyClientSecret");
-            var auth = new CredentialsAuth(clientId, clientSecret);
-            var token = await auth.GetToken();
 
-            return new SpotifyWebAPI
-            {
-                AccessToken = token.AccessToken,
-                TokenType = token.TokenType
-            };
+            var auth = new ClientCredentialsAuthenticator(clientId, clientSecret);
+
+            var config = SpotifyClientConfig
+                .CreateDefault()
+                .WithAuthenticator(auth);
+
+            return new SpotifyClient(config);
         }
     }
 }

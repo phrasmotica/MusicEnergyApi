@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using SpotifyAPI.Web.Models;
+using SpotifyAPI.Web;
 
 namespace MusicEnergyApi
 {
@@ -47,17 +47,11 @@ namespace MusicEnergyApi
         /// <summary>
         /// Returns the size of the image.
         /// </summary>
-        public static int GetSize(this Image image)
-        {
-            return image.Height * image.Width;
-        }
+        public static int GetSize(this Image image) => image.Height * image.Width;
 
         /// <summary>
         /// Returns the loudness from the given features normalised to a value between 0 and 1.
         /// </summary>
-        public static float NormalisedLoudness(this AudioFeatures features)
-        {
-            return (features.Loudness / 60) + 1;
-        }
+        public static float NormalisedLoudness(this TrackAudioFeatures features) => (features.Loudness / 60) + 1;
     }
 }

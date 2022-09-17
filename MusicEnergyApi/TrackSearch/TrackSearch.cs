@@ -4,8 +4,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using SpotifyAPI.Web.Models;
-using SpotifyAPI.Web.Enums;
+using SpotifyAPI.Web;
 using System.Net;
 using System.Linq;
 
@@ -19,26 +18,25 @@ namespace MusicEnergyApi
             ILogger log)
         {
             string query = req.Query["query"];
-            if (string.IsNullOrEmpty(query))
+
+            if (string.IsNullOrWhiteSpace(query))
             {
                 return new BadRequestObjectResult("Please supply a search query!");
             }
 
             log.LogInformation($"Received search query {query}");
 
-            var searchItem = await SearchTrack(query);
-            if (searchItem.HasError())
+            var (response, errorCode) = await SearchTrack(query, log);
+            if (errorCode is not null)
             {
-                log.LogError(searchItem.Error.Message);
-
-                return searchItem.Error.Status switch
+                return errorCode switch
                 {
-                    (int) HttpStatusCode.BadRequest => new NotFoundObjectResult($"Invalid search query '{query}'!"),
+                    HttpStatusCode.BadRequest => new NotFoundObjectResult($"Invalid search query '{query}'!"),
                     _ => new BadRequestObjectResult("An unknown error occurred."),
                 };
             }
 
-            var trackResults = searchItem.Tracks.Items.Select(CreateTrackSearchResult);
+            var trackResults = response.Tracks.Items.Select(CreateTrackSearchResult);
             return new OkObjectResult(trackResults);
         }
 
@@ -61,10 +59,26 @@ namespace MusicEnergyApi
         /// <summary>
         /// Returns track results for the given search query.
         /// </summary>
-        private static async Task<SearchItem> SearchTrack(string query)
+        private static async Task<(SearchResponse, HttpStatusCode?)> SearchTrack(string query, ILogger log)
         {
-            using var client = await Helpers.GetSpotifyClient();
-            return await client.SearchItemsAsync(query, SearchType.Track, 10);
+            var client = Helpers.GetSpotifyClient();
+            
+            try
+            {
+                var request = new SearchRequest(SearchRequest.Types.Track, query)
+                {
+                    Limit = 10,
+                };
+
+                var response = await client.Search.Item(request);
+                return (response, null);
+            }
+            catch (APIException e)
+            {
+                log.LogError($"[{nameof(SearchTrack)}] error executing track search query '{query}': {e.Message}");
+
+                return (null, e.Response.StatusCode);
+            }
         }
     }
 }
